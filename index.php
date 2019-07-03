@@ -1,5 +1,48 @@
 <?php
-    require("includes/connection.php");
+    require_once("CartController.php");
+    $db_result = new CartController();
+    if(!empty($_GET["action"])) {
+        switch($_GET["action"]) {
+            case "add":
+                if(!empty($_POST["quantity"])) {
+                    $productByCode = $db_handle->runQuery("SELECT * FROM tblproduct WHERE code='" . $_GET["code"] . "'");
+                    $itemArray = array($productByCode[0]["code"]=>array('name'=>$productByCode[0]["name"], 'code'=>$productByCode[0]["code"], 'quantity'=>$_POST["quantity"], 'price'=>$productByCode[0]["price"], 'image'=>$productByCode[0]["image"]));
+                    
+                    if(!empty($_SESSION["cart_item"])) {
+                        if(in_array($productByCode[0]["code"],array_keys($_SESSION["cart_item"]))) {
+                            foreach($_SESSION["cart_item"] as $k => $v) {
+                                    if($productByCode[0]["code"] == $k) {
+                                        if(empty($_SESSION["cart_item"][$k]["quantity"])) {
+                                            $_SESSION["cart_item"][$k]["quantity"] = 0;
+                                        }
+                                        $_SESSION["cart_item"][$k]["quantity"] += $_POST["quantity"];
+                                    }
+                            }
+                        } else {
+                            $_SESSION["cart_item"] = array_merge($_SESSION["cart_item"],$itemArray);
+                        }
+                    } else {
+                        $_SESSION["cart_item"] = $itemArray;
+                    }
+                }
+            break;
+            case "remove":
+                if(!empty($_SESSION["cart_item"])) {
+                    foreach($_SESSION["cart_item"] as $k => $v) {
+                            if($_GET["code"] == $k)
+                                unset($_SESSION["cart_item"][$k]);				
+                            if(empty($_SESSION["cart_item"]))
+                                unset($_SESSION["cart_item"]);
+                    }
+                }
+            break;
+            case "empty":
+                unset($_SESSION["cart_item"]);
+            break;	
+        }
+        }
+    
+
 ?>
 <!DOCTYPE html>
 <html>
@@ -25,34 +68,31 @@
                         <th scope="col">#</th>
                         <th scope="col">Name</th>
                         <th scope="col">Price</th>
+                        <th scope="col">Quantity</th>
                         <th scope="col">Action</th>
                     </tr>
                 </thead>
                 <tbody>
+                    <?php
+                        $product_array = $db_result->runQuery("SELECT * FROM product ORDER BY id ASC");
+                        if (!empty($product_array)) { 
+                            foreach($product_array as $key=>$value){
+                    ?>
                     <tr>
-                        <td scope="row">1</td>
-                        <td>Apple</td>
-                        <td>$0.3</td>
-                        <td><a href="#">Add to Cart</a></td>
+                        <td><?php echo $product_array[$key]["id"] ?></td>
+                        <td><?php echo $product_array[$key]["name"] ?></td>
+                        <td><?php echo $product_array[$key]["price"] ?></td>
+                        <td><input type="text" class="text-center" name="quantity" value="1" size="2" /></td>
+                        <td>
+                            <form method="post" action="index.php?action=add&code=<?php echo $product_array[$key]["id"]; ?>">
+                                <input type="submit" value="Add to Cart" />
+                            </form>
+                        </td>
                     </tr>
-                    <tr>
-                        <td scope="row">2</td>
-                        <td>beer</td>
-                        <td>$2</td>
-                        <td><a href="#">Add to Cart</a></td>
-                    </tr>
-                    <tr>
-                        <td scope="row">3</td>
-                        <td>water</td>
-                        <td>$1</td>
-                        <td><a href="#">Add to Cart</a></td>
-                    </tr>
-                    <tr>
-                        <td scope="row">4</td>
-                        <td>cheese</td>
-                        <td>$3.74</td>
-                        <td><a href="#">Add to Cart</a></td>
-                    </tr>
+                    <?php
+                            }
+                        }
+                    ?>        
                 </tbody>
             </table>
         </div>
