@@ -7,7 +7,7 @@
             case "add":
                 if(!empty($_POST["quantity"])) {
                     $productByid = $db_result->runQuery("SELECT * FROM product WHERE id='" . $_GET["id"] . "'");
-                    $itemArray = array($productByid[0]["id"]=>array('name'=>$productByid[0]["name"], 'id'=>$productByid[0]["id"], 'quantity'=>$_POST["quantity"], 'price'=>$productByid[0]["price"], 'image'=>$productByid[0]["image"]));
+                    $itemArray = array($productByid[0]["id"]=>array('name'=>$productByid[0]["name"], 'id'=>$productByid[0]["id"], 'quantity'=>$_POST["quantity"], 'price'=>$productByid[0]["price"]));
 
                     if(!empty($_SESSION["cart_item"])) {
                         if(in_array($productByid[0]["id"],array_keys($_SESSION["cart_item"]))) {
@@ -55,112 +55,102 @@
     <link rel='stylesheet' type='text/css' media='screen' href='css/style.css'>
     <!-- Bootstrap 4 css -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <!-- Font Awesome -->
+    <script src="https://kit.fontawesome.com/5a820aa652.js"></script>
+
 </head>
 <body>
 
     <!--Begin container-->
     <div class="container">
-
         <div class="row">
-            <!--begin main-->
-            <div class="col-9" id="main">
+            <div class="container">
                 <h1>List Products</h1>
-                <table class="table">
-                    <thead class="table-dark">
-                        <tr>
-                            <th scope="col">#</th>
-                            <th scope="col">Name</th>
-                            <th scope="col">Price</th>
-                            <th scope="col">Quantity</th>
-                            <th scope="col">Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
+                <div class="row">
                         <?php
                             $product_array = $db_result->runQuery("SELECT * FROM product ORDER BY id ASC");
                             if (!empty($product_array)) {
                                 foreach($product_array as $key=>$value){
                         ?>
-                        <tr>
+                        <div class="col-lg-3 col-md-6 mb-4">
+                        <div class="card h-100">
+                            <a href="#"><img class="card-img-top" src="http://placehold.it/700x400" alt=""></a>
+                        <div class="card-body">
+                            <h4 class="card-title">
                             <form method="post" action="index.php?action=add&id=<?php echo $product_array[$key]["id"]; ?>">
-                            <td><?php echo $product_array[$key]["id"] ?></td>
-                            <td><?php echo $product_array[$key]["name"] ?></td>
-                            <td><?php echo $product_array[$key]["price"] ?></td>
-                            <td><input type="text" class="text-center" name="quantity" value="1" size="2" /></td>
-                            <td><input type="submit" value="Add to Cart" /></td>
+                                <span><?php echo $product_array[$key]["name"] ?></span>
+                                </h4>
+                                <h5>$<?php echo $product_array[$key]["price"] ?></h5>
+                                <input type="text" class="text-center" name="quantity" value="1" size="2" />
+                                <input type="submit" value="Add to Cart" />
                             </form>
-                        </tr>
-                        <?php
-                                }
-                            }
-                        ?>
-                    </tbody>
-                </table>
-            </div>
-            <!--end main-->
 
-            <!--begin sidebar-->
-            <div class="col" id="sidebar">
-                <h1>Cart</h1>
-                <?php
+                        </div>
+                        <div class="card-footer">
+                            <small class="text-muted">&#9733; &#9733; &#9733; &#9733; &#9734;</small>
+                        </div>
+                        </div>
+                    </div>
+                    <?php
+                            }
+                        }
+                    ?>
+                </div>
+            </div>
+            <?php
                 if(isset($_SESSION["cart_item"])){
                     $total_quantity = 0;
                     $total_price = 0;
-                ?>
-                <table class="tbl-cart" cellpadding="10" cellspacing="1">
-                    <tbody>
-                        <tr>
-                            <th style="text-align:left;">Name</th>
-                            <th style="text-align:left;">id</th>
-                            <th style="text-align:right;" width="5%">Quantity</th>
-                            <th style="text-align:right;" width="10%">Unit Price</th>
-                            <th style="text-align:right;" width="10%">Price</th>
-                            <th style="text-align:center;" width="5%">Remove</th>
-                        </tr>
-                        <?php
-                            foreach ($_SESSION["cart_item"] as $item){
-                                $item_price = $item["quantity"]*$item["price"];
-                        ?>
-                        <tr>
-                            <td><?php echo $item["name"]; ?></td>
-                            <td><?php echo $item["id"]; ?></td>
-                            <td style="text-align:right;"><?php echo $item["quantity"]; ?></td>
-                            <td  style="text-align:right;"><?php echo "$ ".$item["price"]; ?></td>
-                            <td  style="text-align:right;"><?php echo "$ ". number_format($item_price,2); ?></td>
-                            <td style="text-align:center;"><a href="index.php?action=remove&id=<?php echo $item["id"]; ?>" class="btnRemoveAction"><img src="icon-delete.png" alt="Remove Item" /></a></td>
-                        </tr>
-                        <?php
-                                $total_quantity += $item["quantity"];
-                                $total_price += ($item["price"]*$item["quantity"]);
-                            }
-                        ?>
-                        <tr>
-                            <td colspan="2" align="right">Total:</td>
-                            <td align="right"><?php echo $total_quantity; ?></td>
-                            <td align="right" colspan="2"><strong><?php echo "$ ".number_format($total_price, 2); ?></strong></td>
-                            <td></td>
-                        </tr>
-                    </tbody>
-                </table>
-                <?php
+            ?>
+            <a href="index.php?action=empty">Empty Cart <i class="fas fa-trash-alt"></i></a>
+            <table class="table">
+                <thead class="table-dark">
+                    <tr>
+                        <th scope="col">Name</th>
+                        <th scope="col">Price</th>
+                        <th scope="col">Quantity</th>
+                        <th scope="col">Total Price</th>
+                        <th scope="col">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php
+                        var_dump($_SESSION["cart_item"]);
+                        foreach ($_SESSION["cart_item"] as $item){
+                            $item_price = $item["quantity"]*$item["price"];
+                    ?>
+                    <tr>
+                        <td scope="col"><?php echo $item["name"]; ?></td>
+                        <td scope="col"><?php echo "$ ".$item["price"]; ?></td>
+                        <td scope="col"><?php echo $item["quantity"]; ?></td>
+                        <td scope="col"><?php echo "$ ". number_format($item_price,2); ?></td>
+                        <td scope="col"><a href="index.php?action=remove&id=<?php echo $item["id"]; ?>" class="btnRemoveAction" ><i class="fas fa-trash-alt"></i></a></td>
+                    </tr>
+                    <?php
+                            $total_quantity += $item["quantity"];
+                            $total_price += ($item["price"]*$item["quantity"]);
+                        }
+                    ?>
+                    <tr>
+                        <td colspan="2" align="right">Total:</td>
+                        <td align="lelf"><?php echo $total_quantity; ?></td>
+                        <td align="lelf" colspan="2"><strong><?php echo "$ ".number_format($total_price, 2); ?></strong></td>
+                        <!-- <td></td> -->
+                    </tr>
+                </tbody>
+            </table>
+            <?php
                 } else {
                 ?>
                 <div class="no-records">Your Cart is Empty</div>
                 <?php
                 }
                 ?>
-            </div>
-            <!--end sidebar-->
+        </div>
+    </div>
         </div>
         <!--end row-->
     </div>
     <!--end container-->
-
-    <!-- Optional JavaScript -->
-    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
-    <script src="https://id.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
-
 </body>
 </html>
