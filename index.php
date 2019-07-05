@@ -3,43 +3,53 @@
     require_once("CartController.php");
     $db_result = new CartController();
     if(!empty($_GET["action"])) {
+        // var_dump($_GET["action"]);
         switch($_GET["action"]) {
             case "add":
-                if(!empty($_POST["quantity"])) {
-                    $productByid = $db_result->runQuery("SELECT * FROM product WHERE id='" . $_GET["id"] . "'");
-                    $itemArray = array($productByid[0]["id"]=>array('name'=>$productByid[0]["name"], 'id'=>$productByid[0]["id"], 'quantity'=>$_POST["quantity"], 'price'=>$productByid[0]["price"]));
-
-                    if(!empty($_SESSION["cart_item"])) {
-                        if(in_array($productByid[0]["id"],array_keys($_SESSION["cart_item"]))) {
-                            foreach($_SESSION["cart_item"] as $k => $v) {
-                                    if($productByid[0]["id"] == $k) {
-                                        if(empty($_SESSION["cart_item"][$k]["quantity"])) {
-                                            $_SESSION["cart_item"][$k]["quantity"] = 0;
-                                        }
-                                        $_SESSION["cart_item"][$k]["quantity"] += $_POST["quantity"];
-                                    }
+            if(!empty($_POST["quantity"])) {
+                $productByid = $db_result->runQuery("SELECT * FROM product WHERE id='" . $_GET["id"] . "'");
+                $itemArray = array($productByid[0]["id"]=>array('name'=>$productByid[0]["name"], 'id'=>$productByid[0]["id"], 'quantity'=>$_POST["quantity"], 'price'=>$productByid[0]["price"]));
+                
+                if(!empty($_SESSION["cart_item"])) {
+                    if(in_array($productByid[0]["id"],array_keys($_SESSION["cart_item"]))) {
+                        foreach($_SESSION["cart_item"] as $k => $v) {
+                            if($productByid[0]["id"] == $k) {
+                                if(empty($_SESSION["cart_item"][$k]["quantity"])) {
+                                    $_SESSION["cart_item"][$k]["quantity"] = 0;
+                                }
+                                $_SESSION["cart_item"][$k]["quantity"] += $_POST["quantity"];
                             }
-                        } else {
-                            $_SESSION["cart_item"] = array_merge($_SESSION["cart_item"],$itemArray);
                         }
                     } else {
-                        $_SESSION["cart_item"] = $itemArray;
+                        $_SESSION["cart_item"] = array_merge($_SESSION["cart_item"],$itemArray);
                     }
+                } else {
+                    $_SESSION["cart_item"] = $itemArray;
                 }
+            }
             break;
             case "remove":
-                if(!empty($_SESSION["cart_item"])) {
-                    foreach($_SESSION["cart_item"] as $k => $v) {
-                            if($_GET["id"] == $k)
-                                unset($_SESSION["cart_item"][$k]);
-                            if(empty($_SESSION["cart_item"]))
-                                unset($_SESSION["cart_item"]);
-                    }
+            if(!empty($_SESSION["cart_item"])) {
+                foreach($_SESSION["cart_item"] as $k => $v) {
+                    if($_GET["id"] == $k)
+                    unset($_SESSION["cart_item"][$k]);
+                    if(empty($_SESSION["cart_item"]))
+                    unset($_SESSION["cart_item"]);
                 }
+            }
             break;
+            case "pay":
+                if(!empty($_POST["mont"])){
+                    $_SESSION['cash'] = $_SESSION['cash'] - $_POST["mont"] - $_POST["shipping"] ;
+                    unset($_SESSION["cart_item"]);
+                }
+                if($_SESSION['cash'] < 0 ){
+                    $_SESSION['cash'] = 100;
+                }
+                break;
             case "empty":
                 unset($_SESSION["cart_item"]);
-            break;
+                break;
         }
         }
 
@@ -65,7 +75,7 @@
     <div class="container">
         <div class="row">
             <div class="container">
-                <h1>List Products</h1>
+                <!-- <h1>List Products</h1> -->
                 <div class="row">
                         <?php
                             $product_array = $db_result->runQuery("SELECT * FROM product ORDER BY id ASC");
@@ -82,7 +92,7 @@
                                 </h4>
                                 <h5>$<?php echo $product_array[$key]["price"] ?></h5>
                                 <input type="text" class="text-center" name="quantity" value="1" size="2" />
-                                <input type="submit" value="Add to Cart" />
+                                <input type="submit" class="btn btn-success" value="Add to Cart" />
                             </form>
 
                         </div>
@@ -97,12 +107,22 @@
                     ?>
                 </div>
             </div>
+            <?php 
+                
+            ?>
+            <p> Your cash: <?php
+                if($_SESSION['cash'] == null){
+                    $_SESSION['cash'] = 100;
+                }
+            echo $_SESSION['cash']; ?></p>
             <?php
                 if(isset($_SESSION["cart_item"])){
                     $total_quantity = 0;
                     $total_price = 0;
+                    
+                    
             ?>
-            <a href="index.php?action=empty">Empty Cart <i class="fas fa-trash-alt"></i></a>
+            <span class="break"><a href="index.php?action=empty">Empty Cart <i class="fas fa-trash-alt"></i></a></span>       
             <table class="table">
                 <thead class="table-dark">
                     <tr>
@@ -115,10 +135,9 @@
                 </thead>
                 <tbody>
                     <?php
-                        var_dump($_SESSION["cart_item"]);
                         foreach ($_SESSION["cart_item"] as $item){
                             $item_price = $item["quantity"]*$item["price"];
-                    ?>
+                            ?>
                     <tr>
                         <td scope="col"><?php echo $item["name"]; ?></td>
                         <td scope="col"><?php echo "$ ".$item["price"]; ?></td>
@@ -130,19 +149,34 @@
                             $total_quantity += $item["quantity"];
                             $total_price += ($item["price"]*$item["quantity"]);
                         }
-                    ?>
-                    <tr>
-                        <td colspan="2" align="right">Total:</td>
-                        <td align="lelf"><?php echo $total_quantity; ?></td>
-                        <td align="lelf" colspan="2"><strong><?php echo "$ ".number_format($total_price, 2); ?></strong></td>
-                        <!-- <td></td> -->
-                    </tr>
-                </tbody>
-            </table>
+                        ?>
+                    <form method="post" action="index.php?action=pay">
+                        <tr>
+                            <td colspan="2" align="right">Total:</td>
+                            <td align="lelf"><?php echo $total_quantity; ?></td>
+                            <td align="lelf" colspan="2"><strong><?php echo "$ ".number_format($total_price, 2); ?></strong></td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div>  
+                    <div class="form-group">
+                        <label for="exampleFormControlSelect1">Select shipping</label>
+                        <select class="form-control" id="exampleFormControlSelect1" name="shipping" required>
+                            <option value="">None</option>
+                            <option value="0">Pick up - free</option>
+                            <option value="5">UPS - $5</option>
+                        </select>
+                    </div> 
+                    <input type="hidden" class="text-center" name="mont" value="<?php echo $total_price; ?>" size="2" />
+                    <span class="break">  
+                        <button type="submit" class="btn btn-success">Pay</button>
+                    </span>
+                </div>
+            </form>
             <?php
                 } else {
-                ?>
-                <div class="no-records">Your Cart is Empty</div>
+                    ?>
+                <div class="no-records"><span class="break">Your Cart is Empty</span></div>
                 <?php
                 }
                 ?>
