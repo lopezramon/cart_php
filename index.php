@@ -1,20 +1,20 @@
 <?php
     require_once("CartController.php");
-        
-    $listado = new Crud();
+    session_start();
+    $cartList = new Cart();
     if(!empty($_GET["action"])) {
         switch($_GET["action"]) {
             case "add":
-                $listado->addCart();
+                $cartList->addCart();
                 break;
             case "remove":
-                $listado->removeCart();
+                $cartList->removeCart();
                 break;
             case "pay":
-                $listado->payment();
+                $cartList->payment();
                 break;
             case "empty":
-                $listado->emptyCart();
+                $cartList->emptyCart();
                 break;
             default:
                 break;
@@ -49,7 +49,7 @@
                 <!-- <h1>List Products</h1> -->
                 <div class="row">
                         <?php
-                            $product_array = $listado->list();
+                            $product_array = $cartList->list();
                             if (!empty($product_array)) {
                                 foreach($product_array as $key=>$value){
                         ?>
@@ -58,7 +58,7 @@
                             <a href="#"><img class="card-img-top" src="http://placehold.it/700x400" alt=""></a>
                         <div class="card-body">
                             <h4 class="card-title">
-                            <form method="post" action="index.php?action=add&id=<?php echo $product_array[$key]["id"]; ?>">
+                            <form method="post" action="index.php?action=add&code=<?php echo $product_array[$key]["code"]; ?>">
                                 <span><?php echo $product_array[$key]["name"] ?></span>
                                 </h4>
                                 <h5>$<?php echo $product_array[$key]["price"] ?></h5>
@@ -115,7 +115,7 @@
                         <td scope="col"><?php echo "$ ".$item["price"]; ?></td>
                         <td scope="col"><?php echo $item["quantity"]; ?></td>
                         <td scope="col"><?php echo "$ ". number_format($item_price,2); ?></td>
-                        <td scope="col"><a href="index.php?action=remove&id=<?php echo $item["id"]; ?>" class="btnRemoveAction" ><i class="fas fa-trash-alt"></i></a></td>
+                        <td scope="col"><a href="index.php?action=remove&code=<?php echo $item["code"]; ?>" class="btnRemoveAction" ><i class="fas fa-trash-alt"></i></a></td>
                     </tr>
                     <?php
                             $total_quantity += $item["quantity"];

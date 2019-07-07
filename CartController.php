@@ -3,40 +3,43 @@
     require_once("includes/ConnectionDB.php");
     require_once("Product.php");
     
-    session_start();
+    
 	$db_result = new DBController();
 	
-    class Crud extends DBController 
+    class Cart extends DBController 
     {	
-
+        /**
+         * list Product
+         */
 		public function list()
 		{
             try {
                 $product_array = $this->runQuery("SELECT * FROM product ORDER BY id ASC");
-                // var_dump($product_array);
             } catch (TypeError $th) {
-                //throw $th;
                 echo 'Error: '.$th->getMessage();
             }
             
             return $product_array;
         }
-        
+
+        /**
+         * Add Product Cart
+         */
         public function addCart()
         {
             # code..
             if(!empty($_POST["quantity"])) {
-                $productById = $this->runQuery("SELECT * FROM product WHERE id='" . $_GET["id"] . "'");
-                $itemArray = array($productById[0]["id"]=>array('name'=>$productById[0]["name"], 'id'=>$productById[0]["id"], 'quantity'=>$_POST["quantity"], 'price'=>$productById[0]["price"]));
+                $productById = $this->runQuery("SELECT * FROM product WHERE code='" . $_GET["code"] . "'");
+                $itemArray = array($productById[0]["code"]=>array('name'=>$productById[0]["name"], 'id'=>$productById[0]["id"], 'quantity'=>$_POST["quantity"], 'price'=>$productById[0]["price"], 'code'=>$productById[0]["code"]));
 
                 if(!empty($_SESSION["cart_item"])) {
-                    if(in_array($productById[0]["id"],array_keys($_SESSION["cart_item"]))) {
-                        foreach($_SESSION["cart_item"] as $k => $v) {
-                            if($productById[0]["id"] == $k) {
-                                if(empty($_SESSION["cart_item"][$k]["quantity"])) {
-                                    $_SESSION["cart_item"][$k]["quantity"] = 0;
+                    if(in_array($productById[0]["code"],array_keys($_SESSION["cart_item"]))) {
+                        foreach($_SESSION["cart_item"] as $key => $value) {
+                            if(($productById[0]["code"]) == $key) {
+                                if(empty($_SESSION["cart_item"][$key]["quantity"])) {
+                                    $_SESSION["cart_item"][$key]["quantity"] = 0;
                                 }
-                                $_SESSION["cart_item"][$k]["quantity"] += $_POST["quantity"];
+                                $_SESSION["cart_item"][$key]["quantity"] += $_POST["quantity"];
                             }
                         }
                     } else {
@@ -50,23 +53,29 @@
             return $_SESSION["cart_item"];
         }
 
+        /**
+         * Remove Product Cart
+         */
         public function removeCart()
         {
             # code...
             if(!empty($_SESSION["cart_item"])) {
-                // var_dump($_SESSION["cart_item"]);
-                foreach($_SESSION["cart_item"] as $k => $v) {
-                    if($_GET["id"] == $k)
-                    unset($_SESSION["cart_item"][$k]);
+                foreach($_SESSION["cart_item"] as $key => $value) {
+                    if($_GET["code"] == $key )
+                        unset($_SESSION["cart_item"][$key]);
                     if(empty($_SESSION["cart_item"]))
-                    unset($_SESSION["cart_item"]);
+                        unset($_SESSION["cart_item"]);
                 }
-
+            
+                // $_SESSION["cart_item"] = array_values($_SESSION["cart_item"]);
             }
 
             return $_SESSION["cart_item"];
         }
         
+        /**
+         * Empty Cart
+         */
         public function emptyCart()
         {
             # code...
@@ -75,6 +84,9 @@
 
         }
 
+        /**
+         * Payment Cart
+         */
         public function payment()
         {
             # code...
@@ -87,7 +99,10 @@
             }
         }
 
-        public function startProduct(Type $var = null)
+        /**
+         * Rating by stars of product
+         */
+        public function startProduct()
         {
             # code...
             
