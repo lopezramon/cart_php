@@ -1,59 +1,25 @@
 <?php
-    session_start();
     require_once("CartController.php");
-    $db_result = new CartController();
+        
+    $listado = new Crud();
     if(!empty($_GET["action"])) {
-        // var_dump($_GET["action"]);
         switch($_GET["action"]) {
             case "add":
-            if(!empty($_POST["quantity"])) {
-                $productByid = $db_result->runQuery("SELECT * FROM product WHERE id='" . $_GET["id"] . "'");
-                $itemArray = array($productByid[0]["id"]=>array('name'=>$productByid[0]["name"], 'id'=>$productByid[0]["id"], 'quantity'=>$_POST["quantity"], 'price'=>$productByid[0]["price"]));
-                
-                if(!empty($_SESSION["cart_item"])) {
-                    if(in_array($productByid[0]["id"],array_keys($_SESSION["cart_item"]))) {
-                        foreach($_SESSION["cart_item"] as $k => $v) {
-                            if($productByid[0]["id"] == $k) {
-                                if(empty($_SESSION["cart_item"][$k]["quantity"])) {
-                                    $_SESSION["cart_item"][$k]["quantity"] = 0;
-                                }
-                                $_SESSION["cart_item"][$k]["quantity"] += $_POST["quantity"];
-                            }
-                        }
-                    } else {
-                        $_SESSION["cart_item"] = array_merge($_SESSION["cart_item"],$itemArray);
-                    }
-                } else {
-                    $_SESSION["cart_item"] = $itemArray;
-                }
-            }
-            break;
+                $listado->addCart();
+                break;
             case "remove":
-            if(!empty($_SESSION["cart_item"])) {
-                foreach($_SESSION["cart_item"] as $k => $v) {
-                    if($_GET["id"] == $k)
-                    unset($_SESSION["cart_item"][$k]);
-                    if(empty($_SESSION["cart_item"]))
-                    unset($_SESSION["cart_item"]);
-                }
-            }
-            break;
+                $listado->removeCart();
+                break;
             case "pay":
-                if(!empty($_POST["mont"])){
-                    $_SESSION['cash'] = $_SESSION['cash'] - $_POST["mont"] - $_POST["shipping"] ;
-                    unset($_SESSION["cart_item"]);
-                }
-                if($_SESSION['cash'] < 0 ){
-                    $_SESSION['cash'] = 100;
-                }
+                $listado->payment();
                 break;
             case "empty":
-                unset($_SESSION["cart_item"]);
+                $listado->emptyCart();
+                break;
+            default:
                 break;
         }
-        }
-
-
+    }
 ?>
 <!DOCTYPE html>
 <html>
@@ -69,6 +35,11 @@
     <script src="https://kit.fontawesome.com/5a820aa652.js"></script>
 
 </head>
+<style>
+.checked {
+  color: orange;
+}
+</style>
 <body>
 
     <!--Begin container-->
@@ -78,7 +49,7 @@
                 <!-- <h1>List Products</h1> -->
                 <div class="row">
                         <?php
-                            $product_array = $db_result->runQuery("SELECT * FROM product ORDER BY id ASC");
+                            $product_array = $listado->list();
                             if (!empty($product_array)) {
                                 foreach($product_array as $key=>$value){
                         ?>
@@ -91,13 +62,17 @@
                                 <span><?php echo $product_array[$key]["name"] ?></span>
                                 </h4>
                                 <h5>$<?php echo $product_array[$key]["price"] ?></h5>
-                                <input type="text" class="text-center" name="quantity" value="1" size="2" />
+                                <input type="number" class="text-center" name="quantity" min="1" max="100" value="1" size="2" />
                                 <input type="submit" class="btn btn-success" value="Add to Cart" />
                             </form>
 
                         </div>
                         <div class="card-footer">
-                            <small class="text-muted">&#9733; &#9733; &#9733; &#9733; &#9734;</small>
+                            <span class="fa fa-star checked"></span>
+                            <span class="fa fa-star checked"></span>
+                            <span class="fa fa-star checked"></span>
+                            <span class="fa fa-star"></span>
+                            <span class="fa fa-star"></span>
                         </div>
                         </div>
                     </div>
@@ -107,9 +82,6 @@
                     ?>
                 </div>
             </div>
-            <?php 
-                
-            ?>
             <p> Your cash: <?php
                 if($_SESSION['cash'] == null){
                     $_SESSION['cash'] = 100;
