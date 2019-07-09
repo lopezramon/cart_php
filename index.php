@@ -16,6 +16,9 @@
             case "empty":
                 $cartList->emptyCart();
                 break;
+            case "dest":
+                $cartList->reset();
+                break;
             default:
                 break;
         }
@@ -28,23 +31,24 @@
     <meta http-equiv='X-UA-Compatible' content='IE=edge'>
     <title>Task 4- Example</title>
     <meta name='viewport' content='width=device-width, initial-scale=1'>
-    <link rel='stylesheet' type='text/css' media='screen' href='css/style.css'>
+    
     <!-- Bootstrap 4 css -->
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    
+    <!-- css -->
+    <link rel='stylesheet' type='text/css' href='css/style.css'>
+
     <!-- Font Awesome -->
     <script src="https://kit.fontawesome.com/5a820aa652.js"></script>
 
-</head>
-<style>
-.checked {
-  color: orange;
-}
-</style>
-<body>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.rateit/1.1.2/jquery.rateit.min.js"></script>
 
+</head>
+<body>
     <!--Begin container-->
-    <div class="container">
-        <div class="row">
+    <div class="container mb-5">
+        <div class="row" >
             <div class="container">
                 <!-- <h1>List Products</h1> -->
                 <div class="row">
@@ -54,8 +58,8 @@
                                 foreach($product_array as $key=>$value){
                         ?>
                         <div class="col-lg-3 col-md-6 mb-4">
-                        <div class="card h-100">
-                            <a href="#"><img class="card-img-top" src="http://placehold.it/700x400" alt=""></a>
+                        <div class="card h-100" style="background-color: white;">
+                            <a href="#"><img class="card-img-top"  src="<?php echo $HTTP_HOST.'/'.$product_array[$key]["image"]; ?>" alt=""></a>
                         <div class="card-body">
                             <h4 class="card-title">
                             <form method="post" action="index.php?action=add&code=<?php echo $product_array[$key]["code"]; ?>">
@@ -68,6 +72,9 @@
 
                         </div>
                         <div class="card-footer">
+                            <div class="rateit">
+                            </div>
+
                             <span class="fa fa-star checked"></span>
                             <span class="fa fa-star checked"></span>
                             <span class="fa fa-star checked"></span>
@@ -82,19 +89,37 @@
                     ?>
                 </div>
             </div>
-            <p> Your cash: <?php
-                if($_SESSION['cash'] == null){
-                    $_SESSION['cash'] = 100;
-                }
-            echo $_SESSION['cash']; ?></p>
-            <?php
-                if(isset($_SESSION["cart_item"])){
-                    $total_quantity = 0;
-                    $total_price = 0;
-                    
-                    
-            ?>
-            <span class="break"><a href="index.php?action=empty">Empty Cart <i class="fas fa-trash-alt"></i></a></span>       
+            
+        </div>
+
+        <!-- CART AMOUNT -->
+        <div class="row">
+            <div class="col-6">
+                    <p> Your cash: <?php
+                        if($_SESSION['cash'] == null){
+                            $_SESSION['cash'] = 100;
+                            echo $_SESSION['cash'];
+                        }elseif($_SESSION['cash'] <= 0){
+                            echo 'You do not have enough balance to perform this operation
+                            <a href="index.php?action=dest" class="btn btn-success">Reset</a>';
+                        }else {
+                            echo $_SESSION['cash'];
+                        }
+                    ?></p>
+            </div>
+            <div class="col-6 text-right">
+                <span class="text-right"><a href="index.php?action=empty">Empty Cart <i class="fas fa-trash-alt"></i></a></span>       
+            </div>
+        </div>
+
+        <!-- TABLA -->
+        <?php
+            if(isset($_SESSION["cart_item"])){
+                $total_quantity = 0;
+                $total_price = 0; 
+        ?>
+        <div class="row">
+            <div class="col">
             <table class="table">
                 <thead class="table-dark">
                     <tr>
@@ -130,33 +155,62 @@
                         </tr>
                     </tbody>
                 </table>
-                <div>  
-                    <div class="form-group">
-                        <label for="exampleFormControlSelect1">Select shipping</label>
-                        <select class="form-control" id="exampleFormControlSelect1" name="shipping" required>
-                            <option value="">None</option>
-                            <option value="0">Pick up - free</option>
-                            <option value="5">UPS - $5</option>
-                        </select>
-                    </div> 
-                    <input type="hidden" class="text-center" name="mont" value="<?php echo $total_price; ?>" size="2" />
-                    <span class="break">  
-                        <button type="submit" class="btn btn-success">Pay</button>
-                    </span>
-                </div>
-            </form>
-            <?php
+            </div>
+        </div>
+        <?php
+            
                 } else {
                     ?>
-                <div class="no-records"><span class="break">Your Cart is Empty</span></div>
+                <div class="row">
+                    <div class="col text-center">
+                        <span>Your Cart is Empty</span>
+                    </div>    
+                </div>
                 <?php
                 }
-                ?>
+            ?>
+
+        <!-- SHIPPING -->
+        <div class="row">
+            <div class="col">
+      
+                <div class="form-group">
+                    <label for="exampleFormControlSelect1">Select shipping</label>
+                    <select class="form-control" id="exampleFormControlSelect1" name="shipping" required>
+                        <option value="">None</option>
+                        <option value="0">Pick up - free</option>
+                        <option value="5">UPS - $5</option>
+                    </select>
+                </div> 
+                <input type="hidden" class="text-center" name="mont" value="<?php echo $total_price; ?>" size="2" />
+                <span class="break">  
+                    <button type="submit" class="btn btn-success">Pay</button>
+                </span>
+
+                </form>
+            </div>
         </div>
     </div>
         </div>
         <!--end row-->
     </div>
     <!--end container-->
+
+
+<script>
+// Try edit msg
+var textExample = 'something'
+
+function makeSpace(){
+    arrayTextExample = textExample.split('').join(' ')
+    
+    setTimeout(function(){
+      alert(arrayTextExample)  
+    }, 3000)
+}
+
+//smakeSpace();
+</script>
+
 </body>
 </html>

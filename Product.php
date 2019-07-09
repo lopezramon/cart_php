@@ -23,6 +23,14 @@ class Product{
         $this->price = $price;
     }
 
+    public function getCode(){
+        return $this->code;
+    }
+
+    public function setCode($code){
+        $this->code = $code;
+    }
+
     public function getId(){
         return $this->id;
     }

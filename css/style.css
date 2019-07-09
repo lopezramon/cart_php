@@ -3,5 +3,10 @@ body {
 }
 
 .checked {
-    color: orange;
-  }
+    color: blue;
+}
+
+h4{
+    text-shadow: 3px 3px 2px #696;
+    color: blue !important;
+}

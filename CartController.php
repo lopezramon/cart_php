@@ -30,7 +30,7 @@
             # code..
             if(!empty($_POST["quantity"])) {
                 $productById = $this->runQuery("SELECT * FROM product WHERE code='" . $_GET["code"] . "'");
-                $itemArray = array($productById[0]["code"]=>array('name'=>$productById[0]["name"], 'id'=>$productById[0]["id"], 'quantity'=>$_POST["quantity"], 'price'=>$productById[0]["price"], 'code'=>$productById[0]["code"]));
+                $itemArray = array($productById[0]["code"]=>array('name'=>$productById[0]["name"], 'id'=>$productById[0]["id"], 'quantity'=>$_POST["quantity"], 'price'=>$productById[0]["price"], 'code'=>$productById[0]["code"], 'image'=>$productById[0]["image"]));
 
                 if(!empty($_SESSION["cart_item"])) {
                     if(in_array($productById[0]["code"],array_keys($_SESSION["cart_item"]))) {
@@ -94,9 +94,15 @@
                 $_SESSION['cash'] = $_SESSION['cash'] - $_POST["mont"] - $_POST["shipping"] ;
                 unset($_SESSION["cart_item"]);
             }
-            if($_SESSION['cash'] < 0 ){
-                $_SESSION['cash'] = 100;
-            }
+        }
+
+         /**
+         * Payment Cart
+         */
+        public function reset()
+        {
+            session_unset();
+            session_destroy();
         }
 
         /**
