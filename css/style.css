@@ -1,12 +1,17 @@
 body {
     padding-top: 56px !important;
+    background-color: white;
 }
 
 .checked {
-    color: blue;
+    color: orange;
 }
 
 h4{
     text-shadow: 3px 3px 2px #696;
     color: blue !important;
+}
+
+#EmpytCart{
+    color: red;
 }
