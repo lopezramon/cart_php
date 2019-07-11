@@ -131,7 +131,7 @@
                             <td scope="col"><?php echo $item["name"]; ?></td>
                             <td scope="col"><?php echo "$ ".$item["price"]; ?></td>
                             <td scope="col">
-                            <!-- <form method="post"> -->
+                            
                                 <input 
                                 class="input-update-item" 
                                 type="number"
@@ -144,7 +144,7 @@
                                 data-value="<?php echo $item["quantity"]; ?>"
                                 data-id="<?php echo $item["code"]; ?>"
                                 >
-                            <!-- </form> -->
+
                             </td>
                             <td scope="col"><?php echo "$ ". number_format($item_price,2); ?></td>
                             <td scope="col"><a href="index.php?action=remove&code=<?php echo $item["code"]; ?>" class="btnRemoveAction" ><i class="fas fa-trash-alt"></i></a></td>
@@ -183,7 +183,7 @@
                     <label for="exampleFormControlSelect1">Select shipping</label>
                     <select class="form-control" id="exampleFormControlSelect1" name="shipping" required>
                         <option value="">None</option>
-                        <option value="0">Pick up - free</option>
+                        <option value="0"><a href="index.php"> up - free</a></option>
                         <option value="5">UPS - $5</option>
                     </select>
                 </div> 
@@ -201,22 +201,24 @@
     $(".input-update-item").on('change', function(e){
 		e.preventDefault();
 		var id = $(this).data('id');
-        var href = $(this).data('href'+ id );
+        var href = $(this).data('href');
+        console.log(href + id)
 		var quantity =  $('#product_' + id ).val();
-        console.log(href)
 
 		if (quantity == 0) {
 			alert('la cantidad no puede ser 0');
 			$(this).val('1');
 		}else{
-            $.get( href , {
-                quantity : quantity
-            },function(data) {
-              console.log('procesamiento finalizado', data);
-            });
+            // $.post( href , {
+            //     quantity : quantity
+            // },function(resp,estado,jqXHR) {
+            //     console.log(resp);
+            //     console.log(estado);
+            //     console.log(jqXHR);  
+            // });
 			if (true) {}
-            // index.php?action=add&code
-			// window.location.href = href;
+
+			window.location.href = href + id + "/" + quantity;
 		}
 	});
 </Script>

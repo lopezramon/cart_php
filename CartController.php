@@ -24,14 +24,26 @@
 
         /**
          * Add Product Cart
+         * @return array 
          */
         public function addCart()
         {
-            var_dump($_POST["quantity"]);
-            var_dump($_GET);
-            if(!empty($_POST["quantity"])) {
-                $productById = $this->runQuery("SELECT * FROM product WHERE code='" . $_GET["code"] . "'");
-                $itemArray = array($productById[0]["code"]=>array('name'=>$productById[0]["name"], 'id'=>$productById[0]["id"], 'quantity'=>$_POST["quantity"], 'price'=>$productById[0]["price"], 'code'=>$productById[0]["code"], 'image'=>$productById[0]["image"]));
+            
+            $code = explode("/", $_GET["code"]);
+            
+            if(!empty($_POST["quantity"]) || !empty($code[1])) {
+                $productById = $this->runQuery("SELECT * FROM product WHERE code='" . $code[0] . "'");
+                
+                $cartQuantity = !empty($_POST["quantity"]) ? $_POST["quantity"] : $code[1];
+                
+                $itemArray = array($productById[0]["code"]=>array(
+                    'name'=>$productById[0]["name"], 
+                    'id'=>$productById[0]["id"], 
+                    'quantity'=> $cartQuantity, 
+                    'price'=>$productById[0]["price"], 
+                    'code'=>$productById[0]["code"], 
+                    'image'=>$productById[0]["image"])
+                );
 
                 if(!empty($_SESSION["cart_item"])) {
                     if(in_array($productById[0]["code"],array_keys($_SESSION["cart_item"]))) {
@@ -40,7 +52,11 @@
                                 if(empty($_SESSION["cart_item"][$key]["quantity"])) {
                                     $_SESSION["cart_item"][$key]["quantity"] = 0;
                                 }
-                                $_SESSION["cart_item"][$key]["quantity"] += $_POST["quantity"];
+                                if(!empty($_POST["quantity"])){
+                                    $_SESSION["cart_item"][$key]["quantity"] += $cartQuantity;
+                                }else {
+                                    $_SESSION["cart_item"][$key]["quantity"] = $cartQuantity;
+                                }
                             }
                         }
                     } else {
@@ -50,8 +66,6 @@
                     $_SESSION["cart_item"] = $itemArray;
                 }
             }
-
-            return $_SESSION["cart_item"];
         }
 
         /**
@@ -91,16 +105,19 @@
          */
         public function payment()
         {
-            if( $_POST["mont"] + $_POST["shipping"] > 100 ){
-                $_SESSION['warning'] = ', The purchase amount exceeds $100';
-            }elseif($_SESSION['cash'] <= 0){
-                $_SESSION['warning']  = ', You do not have enough balance to perform this operation
-                    <a href="index.php?action=dest" class="btn btn-warning">Reset</a>';
-            }elseif($_POST["mont"] + $_POST["shipping"] > $_SESSION['cash']){
-                $_SESSION['warning']  = ', Does not have enough cash to make the purchase, please reload <a href="index.php?action=dest" class="btn btn-warning">Reset</a>';
-            }else {
-                $_SESSION['cash'] = $_SESSION['cash'] - $_POST["mont"] - $_POST["shipping"] ;
-                unset($_SESSION["cart_item"]);
+            if ($_POST["mont"]) {
+                
+                if( $_POST["mont"] + $_POST["shipping"] > 100 ){
+                    $_SESSION['warning'] = ', The purchase amount exceeds ' .$_SESSION['cash'];
+                }elseif($_SESSION['cash'] <= 0){
+                    $_SESSION['warning']  = ', You do not have enough balance to perform this operation
+                        <a href="index.php?action=dest" class="btn btn-warning">Reset</a>';
+                }elseif($_POST["mont"] + $_POST["shipping"] > $_SESSION['cash']){
+                    $_SESSION['warning']  = ', Does not have enough cash to make the purchase, please reload <a href="index.php?action=dest" class="btn btn-warning">Reset</a>';
+                }else {
+                    $_SESSION['cash'] = $_SESSION['cash'] - $_POST["mont"] - $_POST["shipping"] ;
+                    unset($_SESSION["cart_item"]);
+                }
             }
         }
 
