@@ -209,9 +209,9 @@
                             name="shipping" 
                             data-href="index.php"
                             required>
-                        <option value="">None</option>
-                        <option value="0"><a href="index.php"> Pick up - free</a></option>
-                        <option value="5">UPS - $5</option>
+                        <option value="" <?php if ($_SESSION['shipping'] === null) echo 'selected="selected" '; ?>>None</option>
+                        <option value="0" <?php if ($_SESSION['shipping'] == 0) echo 'selected="selected" '; ?> ><a href="index.php"> Pick up - free</a></option>
+                        <option value="5" <?php if ($_SESSION['shipping'] == 5) echo 'selected="selected" '; ?> >UPS - $5</option>
                     </select>
                 </div> 
                 <input type="hidden" class="text-center" name="mont" value="<?php echo $total_price; ?>" size="2" />

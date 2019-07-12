@@ -93,7 +93,7 @@
         {
             unset($_SESSION["cart_item"]);
             session_destroy($_SESSION['cart_item']);
-            unset($_SESSION['shipping']);
+            $_SESSION['shipping'] = NULL;
             unset($_SESSION['option']);
 
             //delete message from the warning session if there is
@@ -119,7 +119,9 @@
                 }else {
                     $_SESSION['cash'] = $_SESSION['cash'] - $_POST["mont"] - $_POST["shipping"] ;
                     unset($_SESSION["cart_item"]);
+                    $_SESSION['shipping'] = NULL;
                 }
+
             }
         }
 
@@ -137,8 +139,9 @@
          */
         public function shipping()
         {
+
             $_SESSION['option']   = $_GET['option'] > 0 ? 'UPS' : 'Pick up - Free';
-            $_SESSION['shipping'] = $_GET['option'];
+            $_SESSION['shipping'] = $_GET['option'] == null ? null : $_GET['option'];
         }
 
         /**
