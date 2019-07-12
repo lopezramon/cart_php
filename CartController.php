@@ -93,7 +93,9 @@
         {
             unset($_SESSION["cart_item"]);
             session_destroy($_SESSION['cart_item']);
-            
+            unset($_SESSION['shipping']);
+            unset($_SESSION['option']);
+
             //delete message from the warning session if there is
             if ( !empty($_SESSION['warning']) ) {
                 unset($_SESSION['warning']);
@@ -128,6 +130,15 @@
         {
             session_unset();
             session_destroy();
+        }
+
+        /**
+         * Rating by stars of product
+         */
+        public function shipping()
+        {
+            $_SESSION['option']   = $_GET['option'] > 0 ? 'UPS' : 'Pick up - Free';
+            $_SESSION['shipping'] = $_GET['option'];
         }
 
         /**

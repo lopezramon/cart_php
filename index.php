@@ -19,6 +19,9 @@
             case "dest":
                 $cartList->reset();
                 break;
+            case "shipping":
+                $cartList->shipping();
+                break;
             default:
                 break;
         }
@@ -131,7 +134,7 @@
                             <td scope="col"><?php echo $item["name"]; ?></td>
                             <td scope="col"><?php echo "$ ".$item["price"]; ?></td>
                             <td scope="col">
-                            
+
                                 <input 
                                 class="input-update-item" 
                                 type="number"
@@ -153,12 +156,32 @@
                                 $total_quantity += $item["quantity"];
                                 $total_price += ($item["price"]*$item["quantity"]);
                             }
+
+                            if (empty($_SESSION['option'])) {              
                         ?>
                             <tr>
                                 <td colspan="2" align="right">Total:</td>
                                 <td align="lelf"><?php echo $total_quantity; ?></td>
                                 <td align="lelf" colspan="2"><strong><?php echo "$ ".number_format($total_price, 2); ?></strong></td>
                             </tr>
+                        <?php 
+                            }else{
+                        ?>
+                            <td colspan="2" align="right">SubTotal:</td>
+                                <td align="lelf"><?php echo $total_quantity; ?></td>
+                                <td align="lelf" colspan="2"><strong><?php echo "$ ".number_format($total_price, 2); ?></strong></td>
+                            <tr>
+                                <td colspan="2" align="right">shipping:</td>
+                                <td align="lelf"><?php echo $_SESSION['option'] ?></td>
+                                <td align="lelf" colspan="2"><strong><?php echo "$ ".number_format($_SESSION['shipping'], 2); ?></strong></td>
+                            </tr>
+                            <td colspan="2" align="right">Total:</td>
+                                <td align="lelf"></td>
+                                <td align="lelf" colspan="2"><strong><?php echo "$ ".number_format($total_price + $_SESSION['shipping'], 2); ?></strong></td>
+                            <tr>
+                        <?php 
+                            }
+                        ?>
                     </tbody>
                 </table>
             </div>
@@ -181,9 +204,13 @@
                 <form method="post" action="index.php?action=pay">
                 <div class="form-group">
                     <label for="exampleFormControlSelect1">Select shipping</label>
-                    <select class="form-control" id="exampleFormControlSelect1" name="shipping" required>
+                    <select class="select-update-mount form-control" 
+                            id="exampleFormControlSelect1" 
+                            name="shipping" 
+                            data-href="index.php"
+                            required>
                         <option value="">None</option>
-                        <option value="0"><a href="index.php"> up - free</a></option>
+                        <option value="0"><a href="index.php"> Pick up - free</a></option>
                         <option value="5">UPS - $5</option>
                     </select>
                 </div> 
@@ -197,30 +224,31 @@
     </div>
     <!--end container-->
 <script>
-    // cambio input-update-item
+    //Send for GET of remove quantity
     $(".input-update-item").on('change', function(e){
 		e.preventDefault();
 		var id = $(this).data('id');
         var href = $(this).data('href');
-        console.log(href + id)
 		var quantity =  $('#product_' + id ).val();
 
 		if (quantity == 0) {
 			alert('la cantidad no puede ser 0');
 			$(this).val('1');
 		}else{
-            // $.post( href , {
-            //     quantity : quantity
-            // },function(resp,estado,jqXHR) {
-            //     console.log(resp);
-            //     console.log(estado);
-            //     console.log(jqXHR);  
-            // });
 			if (true) {}
-
 			window.location.href = href + id + "/" + quantity;
 		}
 	});
+    //select-update-mount
+    $('select').on('change', function() {
+         var option = this.value
+         var href = 'index.php?action=shipping&option='
+        console.log(option)
+        console.log(href)
+		if (true) {}
+		window.location.href = href + option;
+    });
+
 </Script>
 </body>
 </html>
