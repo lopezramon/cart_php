@@ -149,8 +149,20 @@
          */
         public function startProduct()
         {
-            # code...
+            var_dump($this->runQuery("INSERT INTO `qualification` (`id_product`, '".$_POST['start']."' ) 
+            VALUES ('".$_POST['id']."', '1')"));die();
             
+            $start = $this->runQuery("INSERT INTO `qualification` (`id_product`, '".$_POST['start']."' ) 
+                                      VALUES ('".$_POST['id']."', '1')");            
+            
+
+
+            $qualification = $this->runQuery("SELECT p.name,p.code, SUM(q.fisrt) as fisrt,SUM(q.secund) as secund,sum(q.third) as third,SUM(q.quarter) as quarter,SUM(q.fifth) as fifth 
+                                                    FROM qualification q 
+                                                    INNER JOIN product p ON q.id_product=p.id 
+                                                    GROUP BY p.name,p.code");
+            
+            var_dump($qualification);die();
         }
     }
 ?>

@@ -27,7 +27,7 @@ class DBController
 	 * @return array
 	 */
 	function runQuery($query) {
-		$result = mysqli_query($this->conn,$query);
+		$result = mysqli_query($this->conn,$query) or die("Problemas en el select".mysqli_error($this->conn));
 		while($row=mysqli_fetch_assoc($result)) 
 		{
 			$resultset[] = $row;

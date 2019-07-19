@@ -22,6 +22,9 @@
             case "shipping":
                 $cartList->shipping();
                 break;
+            case "start":
+                $cartList->startProduct();
+                break;
             default:
                 break;
         }
@@ -77,6 +80,17 @@
                         <span class="fa fa-star checked"></span>
                         <span class="fa fa-star"></span>
                         <span class="fa fa-star"></span>
+                        <form method="POST" action="index.php?action=start">
+                            <select class="form-control" name="start">
+                                <option value="fisrt"> 1</option>
+                                <option value="secund"> 2</option>
+                                <option value="third"> 3</option>
+                                <option value="quarter"> 4</option>
+                                <option value="fifth"> 5</option>
+                            </select>
+                            <input type="number" hidden name="id " value="<?php echo $product_array[$key]["id"]; ?>" />    
+                            <input type="submit" class="btn btn-warning" value="Start" />
+                        </form>
                     </div>
                 </div>
             </div>
@@ -240,7 +254,7 @@
 		}
 	});
     //select-update-mount
-    $('select').on('change', function() {
+    $('.select-update-mount').on('change', function() {
          var option = this.value
          var href = 'index.php?action=shipping&option='
         console.log(option)
