@@ -23,7 +23,10 @@
                 $cartList->shipping();
                 break;
             case "start":
-                $cartList->startProduct();
+                $cartList->voteProduct();
+                break;
+            case "changeUser":
+                $cartList->changeUser();
                 break;
             default:
                 break;
@@ -54,6 +57,18 @@
 <body>
     <!--Begin container-->
     <div class="container mb-5">
+        <div class="row">
+           <div class="col-lg-6 text-left">
+                <?php
+                    if (isset($_SESSION['voteMessger'])) {
+                        echo $_SESSION['voteMessger'];
+                    }
+                ?>
+            </div>
+            <div class="col-lg-6 text-right">
+                <span class="text-right" id="EmpytCart"><a href="index.php?action=changeUser">Change User <i class="fas fa-sync-alt"></i></a></span>       
+            </div>   
+        </div> 
         <!-- Card Products -->
         <div class="row">
             <?php
@@ -74,12 +89,18 @@
                             <input type="submit" class="btn btn-success" value="Add to Cart" />
                         </form>
                     </div>
+                    <!-- Qualifications the vote -->
                     <div class="card-footer">
-                        <span class="fa fa-star checked"></span>
-                        <span class="fa fa-star checked"></span>
-                        <span class="fa fa-star checked"></span>
-                        <span class="fa fa-star"></span>
-                        <span class="fa fa-star"></span>
+                        <?php   
+                            $promedio = $cartList->voteAVG($product_array[$key]["code"]);
+                            $promedioInt  = (int)$promedio[0][$product_array[$key]["code"]];  
+                            for ($i=0; $i < $promedioInt; $i++) { 
+                        ?> 
+                                <span class="fa fa-star checked"></span>
+                        <?php 
+                            }
+                            
+                        ?> 
                         <form method="POST" action="index.php?action=start">
                             <select class="form-control" name="start">
                                 <option value="fisrt"> 1</option>
@@ -88,7 +109,7 @@
                                 <option value="quarter"> 4</option>
                                 <option value="fifth"> 5</option>
                             </select>
-                            <input type="number" hidden name="id " value="<?php echo $product_array[$key]["id"]; ?>" />    
+                            <input type="number" hidden name="id" value="<?php echo $product_array[$key]["id"]; ?>" />    
                             <input type="submit" class="btn btn-warning" value="Start" />
                         </form>
                     </div>
@@ -100,7 +121,7 @@
             ?>
         </div>
 
-        <!-- Cash Amount and Empty Cart -->
+        <!-- Cash Amount and Empty all Cart -->
         <div class="row">
             <div class="col-6">
                     <p> Your cash: $<?php
@@ -148,7 +169,6 @@
                             <td scope="col"><?php echo $item["name"]; ?></td>
                             <td scope="col"><?php echo "$ ".$item["price"]; ?></td>
                             <td scope="col">
-
                                 <input 
                                 class="input-update-item" 
                                 type="number"
@@ -161,7 +181,6 @@
                                 data-value="<?php echo $item["quantity"]; ?>"
                                 data-id="<?php echo $item["code"]; ?>"
                                 >
-
                             </td>
                             <td scope="col"><?php echo "$ ". number_format($item_price,2); ?></td>
                             <td scope="col"><a href="index.php?action=remove&code=<?php echo $item["code"]; ?>" class="btnRemoveAction" ><i class="fas fa-trash-alt"></i></a></td>
@@ -170,7 +189,6 @@
                                 $total_quantity += $item["quantity"];
                                 $total_price += ($item["price"]*$item["quantity"]);
                             }
-
                             if (empty($_SESSION['option'])) {              
                         ?>
                             <tr>
@@ -215,6 +233,12 @@
         <!-- Shipping and payment -->
         <div class="row">
             <div class="col">
+                <?php 
+                $arrayShipping = array(
+                    'Pick up - Free',
+                    5  => 'UPS'
+                );
+                ?>
                 <form method="post" action="index.php?action=pay">
                 <div class="form-group">
                     <label for="exampleFormControlSelect1">Select shipping</label>
@@ -223,10 +247,12 @@
                             name="shipping" 
                             data-href="index.php"
                             required>
-                        <option value="" <?php if ($_SESSION['shipping'] === null) echo 'selected="selected" '; ?>>None</option>
-                        <option value="0" <?php if ($_SESSION['shipping'] == 0) echo 'selected="selected" '; ?> ><a href="index.php"> Pick up - free</a></option>
-                        <option value="5" <?php if ($_SESSION['shipping'] == 5) echo 'selected="selected" '; ?> >UPS - $5</option>
+                            <option value="">Choose an option</option>
+                        <?php foreach( $arrayShipping as $key => $shipping ): ?>
+                            <option value="<?php echo $key ?>"<?php if( $shipping ==  $_SESSION['option']  ): ?> selected="selected"<?php endif; ?>><?php echo $shipping ?></option>
+                        <?php endforeach; ?>
                     </select>
+
                 </div> 
                 <input type="hidden" class="text-center" name="mont" value="<?php echo $total_price; ?>" size="2" />
                 <span class="break">  
@@ -257,8 +283,6 @@
     $('.select-update-mount').on('change', function() {
          var option = this.value
          var href = 'index.php?action=shipping&option='
-        console.log(option)
-        console.log(href)
 		if (true) {}
 		window.location.href = href + option;
     });

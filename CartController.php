@@ -1,9 +1,7 @@
 <?php
     
     require_once("includes/ConnectionDB.php");
-    require_once("Product.php");
-    
-    
+
 	$db_result = new DBController();
 	
     class Cart extends DBController 
@@ -44,9 +42,11 @@
                     'code'=>$productById[0]["code"], 
                     'image'=>$productById[0]["image"])
                 );
-
+                //valid that the car is not empty
                 if(!empty($_SESSION["cart_item"])) {
+                    //valid that the product code is in the cart
                     if(in_array($productById[0]["code"],array_keys($_SESSION["cart_item"]))) {
+                        //I go through the entire cart to add the amounts per podruct
                         foreach($_SESSION["cart_item"] as $key => $value) {
                             if(($productById[0]["code"]) == $key) {
                                 if(empty($_SESSION["cart_item"][$key]["quantity"])) {
@@ -87,19 +87,24 @@
         }
         
         /**
-         * Empty Cart
+         * Clear Cart
          */
         public function emptyCart()
         {
             unset($_SESSION["cart_item"]);
             session_destroy($_SESSION['cart_item']);
-            $_SESSION['shipping'] = NULL;
+            
+            //option varible empty
             unset($_SESSION['option']);
 
-            //delete message from the warning session if there is
-            if ( !empty($_SESSION['warning']) ) {
-                unset($_SESSION['warning']);
-            }
+            //shipping varible empty
+            unset($_SESSION['shipping']);
+
+            //remove message the rate
+            unset( $_SESSION['voteMessger']);
+
+            //remove warning message
+            unset($_SESSION['warning']);
         }
 
         /**
@@ -118,8 +123,7 @@
                     $_SESSION['warning']  = ', Does not have enough cash to make the purchase, please reload <a href="index.php?action=dest" class="btn btn-warning">Reset</a>';
                 }else {
                     $_SESSION['cash'] = $_SESSION['cash'] - $_POST["mont"] - $_POST["shipping"] ;
-                    unset($_SESSION["cart_item"]);
-                    $_SESSION['shipping'] = NULL;
+                    $this->emptyCart();
                 }
 
             }
@@ -130,8 +134,10 @@
          */
         public function reset()
         {
-            session_unset();
-            session_destroy();
+            //cash varible empty
+            unset($_SESSION['cash']);
+            //remove warning message
+            unset($_SESSION['warning']);
         }
 
         /**
@@ -139,30 +145,87 @@
          */
         public function shipping()
         {
-
-            $_SESSION['option']   = $_GET['option'] > 0 ? 'UPS' : 'Pick up - Free';
-            $_SESSION['shipping'] = $_GET['option'] == null ? null : $_GET['option'];
+            if ($_GET['option'] == 5) {
+                $_SESSION['option'] = 'UPS';
+                $_SESSION['shipping'] = $_GET['option'];
+            } elseif ($_GET['option'] == 0) {
+                $_SESSION['option'] = 'Pick up - Free';
+                $_SESSION['shipping'] = $_GET['option'];
+            }else{
+                unset($_SESSION['option']);
+                unset($_SESSION['shipping']);
+            }
         }
 
         /**
-         * Rating by stars of product
+         * Vote by product
          */
-        public function startProduct()
+        public function voteProduct()
+        {    
+            //Valid if you already voted for this product  
+            if(in_array($_POST[id],$_SESSION['voteProduct'])){
+                $_SESSION['voteMessger'] = 'Remember that you can only vote once for this product';
+            }else {
+                //Insert vote for this product in BD
+                $reusltsql = $this->runQuery("INSERT INTO qualification (id_product, $_POST[start]) 
+                                              VALUES ($_POST[id],1)");
+                
+                //limpia la variable del mensaje
+                unset( $_SESSION['voteMessger']); 
+
+                if (isset($_SESSION['voteProduct'])) {
+                    //The product for which you vote is added
+                    array_push($_SESSION['voteProduct'], $_POST[id]);
+                }else {
+                    $_SESSION['voteProduct'] = [];
+                    //The product for which you vote is added
+                    array_push($_SESSION['voteProduct'], $_POST[id]);
+                }
+            }
+        }
+
+        /**
+         * 
+         * Change User
+         */
+        public function changeUser()
         {
-            var_dump($this->runQuery("INSERT INTO `qualification` (`id_product`, '".$_POST['start']."' ) 
-            VALUES ('".$_POST['id']."', '1')"));die();
-            
-            $start = $this->runQuery("INSERT INTO `qualification` (`id_product`, '".$_POST['start']."' ) 
-                                      VALUES ('".$_POST['id']."', '1')");            
-            
+            //clear cart
+            $this->emptyCart();
 
+            //Clean votes
+            unset( $_SESSION['voteProduct']);
 
-            $qualification = $this->runQuery("SELECT p.name,p.code, SUM(q.fisrt) as fisrt,SUM(q.secund) as secund,sum(q.third) as third,SUM(q.quarter) as quarter,SUM(q.fifth) as fifth 
-                                                    FROM qualification q 
-                                                    INNER JOIN product p ON q.id_product=p.id 
-                                                    GROUP BY p.name,p.code");
-            
-            var_dump($qualification);die();
+            //starts the session variable for voting
+            $_SESSION['voteProduct'] = [];
+
+            //cash varible empty
+            unset($_SESSION['cash']);
+        }
+
+        /**
+         * Average votes per product
+         * @param int
+         * @return array
+         */
+        public function voteAVG($code)
+        {
+            //Consult qualifications the vote
+            $qualifications = $this->runQuery("SELECT p.name,p.code, SUM(q.fisrt) as fisrt,SUM(q.secund) as secund,sum(q.third) as third,SUM(q.quarter) as quarter,SUM(q.fifth) as fifth 
+                FROM qualification q 
+                INNER JOIN product p ON q.id_product=p.id 
+                where p.code = '$code'
+                GROUP BY p.name,p.code");
+
+            $promProduct = 0;
+            foreach ($qualifications as $productQ) {
+                //calculation of the average per product vote
+                $promProduct = (($productQ[fisrt] * 1) + ($productQ[secund] * 2) + ($productQ[third] * 3) + ($productQ[quarter] * 4) + ($productQ[fifth] * 5)) / ($productQ[fisrt] + $productQ[secund] + $productQ[third]+ $productQ[quarter] + $productQ[fifth]);
+                //Adding to an array
+                $result [] = [$productQ[code] => number_format($promProduct, 2, ',', '')];
+            }            
+
+            return $result;
         }
     }
 ?>

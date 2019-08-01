@@ -6,7 +6,7 @@ class DBController
 	private $user = "root";
 	private $password = "123456";
 	private $database = "cart";
-	private $conn;
+	public $conn;
 	
 	function __construct() {
 		$this->conn = $this->connectDB();
@@ -16,7 +16,7 @@ class DBController
 	 * Connection data base
 	 * @return array
 	 */
-	function connectDB() {
+	public function connectDB() {
 		$conn = mysqli_connect($this->host,$this->user,$this->password,$this->database);
 		return $conn;
 	}
@@ -26,7 +26,7 @@ class DBController
 	 * execute query
 	 * @return array
 	 */
-	function runQuery($query) {
+	public function runQuery($query) {
 		$result = mysqli_query($this->conn,$query) or die("Problemas en el select".mysqli_error($this->conn));
 		while($row=mysqli_fetch_assoc($result)) 
 		{
@@ -34,6 +34,11 @@ class DBController
 		}		
 		if(!empty($resultset))
 		return $resultset;
+	}
+
+	public function disableConextion(Type $var = null)
+	{
+		mysqli_close($this->conn);
 	}
 }
 ?>
